@@ -1,10 +1,6 @@
 script "Automatic 2-day Hardcore Community Service";
 notify aabattery;
-<<<<<<< HEAD
-since r16335;
-=======
 since r16363;
->>>>>>> refs/remotes/origin/master
 //courtesy of yojimboS_LAW's 2-day HC guide
 //shoutouts to Cheesecookie, Ezandora, and Cannonfire40 for contributing a bit of code/advice
 
@@ -25,8 +21,6 @@ int [string] statemap;
 
 boolean actuallyrun = true;
 boolean lockFamiliar = false;
-<<<<<<< HEAD
-=======
 
 // Relay property settings
 boolean alwaysG9 = get_property("acs_alwaysG9").to_boolean();
@@ -34,15 +28,10 @@ familiar 100familiar = get_property("acs_100familiar").to_familiar();
 boolean doSoftcore = get_property("acs_doSoftcore").to_boolean();
 boolean buyPulls = get_property("acs_buyPulls").to_boolean();
 int pullBudget = get_property("acs_pullBudget").to_int();
->>>>>>> refs/remotes/origin/master
 
 ////add puck-man logic maybe (unlocking the woods and stuff)
 ////allow running before ascending to check prereqs then
 ////actually check how many free crafts are remaining instead of the moronic BS I currently do
-<<<<<<< HEAD
-////get all the free barrel full of barrel stuff if you have barrel shrine...somehow
-=======
->>>>>>> refs/remotes/origin/master
 
 void loadSave() {
 	file_to_map("AutoHCCSvars.txt", statemap);
@@ -98,13 +87,10 @@ void decorateShrub() {
 }
 
 familiar getSpleenFamiliar() {
-<<<<<<< HEAD
-=======
 	if(100familiar != $familiar[none]) {
 		return 100familiar;
 	}
 
->>>>>>> refs/remotes/origin/master
 	foreach spleener in $familiars[Golden Monkey, Grim Brother, Unconscious Collective] {
 		if (have_familiar(spleener))
 			return spleener;
@@ -113,13 +99,9 @@ familiar getSpleenFamiliar() {
 }
 
 void setFamiliar() { //idk about this but something's better than nothing...I'd throw puck-man here but then I'd have to unlock the woods so meh
-<<<<<<< HEAD
-	if (!lockFamiliar) {
-=======
 	if(100familiar != $familiar[none]) {
 		use_familiar(100familiar)
 	} else if (!lockFamiliar) {
->>>>>>> refs/remotes/origin/master
 		familiar spleener = getSpleenFamiliar();
 		int desiredSpleenDrops = 3;
 		if (my_daycount() == 2)
@@ -629,12 +611,9 @@ void summonDailyStuff() {
 	visit_url("campground.php?action=garden");
 	visit_url("campground.php?action=workshed");
 	visit_url("place.php?whichplace=chateau&action=chateau_desk2");
-<<<<<<< HEAD
-=======
 	if(!in_hardcore() && doSoftcore) {
 		pullDaily();
     }
->>>>>>> refs/remotes/origin/master
 	if (have_skill($skill[Summon Taffy])) {
 		while (mp_cost($skill[Summon Taffy]) < 30) {
 			chateauCast($skill[Summon Taffy]);
@@ -696,13 +675,9 @@ boolean giantGrowth() {
 	} else {
 		restore_hp(my_maxhp());
 		familiar curfam = my_familiar();
-<<<<<<< HEAD
-		use_familiar($familiar[none]);
-=======
 		if(100familiar == $familiar[none]) {
 			use_familiar($familiar[none]);
 		}
->>>>>>> refs/remotes/origin/master
 		lockFamiliar = true;
 		adv1($location[The Dire Warren], -1, "combat");
 		lockFamiliar = false;
@@ -869,12 +844,8 @@ void hotTest() {
 		useIfHave(1, $item[scroll of Protection from Bad Stuff]);
 		useIfHave(1, $item[Gene Tonic: Elemental]);
 		useIfHave(1, $item[cuppa Frost tea]);
-<<<<<<< HEAD
-		if (have_familiar($familiar[Exotic Parrot])) {
-=======
 		useForTest("HotRes");
 		if (100familiar == $familiar[Exotic Parrot] || (have_familiar($familiar[Exotic Parrot]) && 100familiar == $familiar[none])) {
->>>>>>> refs/remotes/origin/master
 			use_familiar($familiar[Exotic Parrot]);
 			chateauCast($skill[Leash of Linguini]);
 			chateauCast($skill[Empathy of the Newt]);
@@ -916,13 +887,9 @@ void weaponTest() {
 		chateauCast($skill[Scowl of the Auk]);
 		chateauCast($skill[The Magical Mojomuscular Melody]);
 		useIfHave(1, $item[Gene Tonic: Beast]);
-<<<<<<< HEAD
-		//useIfHave(1, $item[cuppa Twen tea]);
-=======
 		useIfHave(1, $item[confiscated comic book]);
 		//useIfHave(1, $item[cuppa Twen tea]);
 		useForTest("WeaponDmg");
->>>>>>> refs/remotes/origin/master
 		while (my_level() < 8 && free_rest()) { //expends free rests until level 8 or running out
 			if (have_skill($skill[Summon Taffy]) && my_mp() > (mp_cost($skill[Summon Taffy]) + 50)) {
 				cast($skill[Summon Taffy]);
@@ -987,10 +954,7 @@ void itemTest() {
 		useIfHave(1, $item[tin cup]);
 		useIfHave(1, $item[cyclops eyedrops]);
 		useIfHave(1, $item[cuppa Serendipi tea]);
-<<<<<<< HEAD
-=======
 		useForTest("Item");
->>>>>>> refs/remotes/origin/master
 		useTaffies($item[pulled yellow taffy]);
 		if ($item[Dinsey Whinskey].available_amount() > 0 && my_inebriety() < 13) {
 			if (have_effect($effect[Ode to Booze]) < 2) {
@@ -1096,10 +1060,7 @@ void spellTest() { //buffing for this test is actually handled at the end of day
 		use(1, $item[cordial of concentration]);
 	}
 	//useIfHave(1, $item[cuppa Twen tea]);
-<<<<<<< HEAD
-=======
 	useForTest("SpellDmg");
->>>>>>> refs/remotes/origin/master
 	maximize("spell damage", false);
 	doTest(SPELLTEST);
 	saveProgress(19);
@@ -1135,14 +1096,10 @@ void muscleTest() {
 		useIfHave(1, $item[dollop of barbecue sauce]);
 		useIfHave(1, $item[Ben-Gal&trade; Balm]);
 		useIfHave(1, $item[cuppa Feroci tea]);
-<<<<<<< HEAD
-		useTaffies($item[pulled orange taffy]);
-=======
 		useIfHave(1, $item[confiscated comic book]);
 		useIfHave(1, $item[Gene Tonic: Dude]);
 		useTaffies($item[pulled orange taffy]);
 		useForTest("Muscle");
->>>>>>> refs/remotes/origin/master
 		if (have_effect($effect[Phorcefullness]) == 0) {
 			useIfHave(1, $item[philter of phorce]);
 		}
@@ -1166,11 +1123,8 @@ void mystTest() {
 		chateauCast($skill[Sauce Contemplation]);
 		chateauCast($skill[Manicotti Meditation]);
 		useIfHave(1, $item[ointment of the occult]);
-<<<<<<< HEAD
-=======
 		useIfHave(1, $item[confiscated cell phone]);
 		useIfHave(1, $item[teeny-tiny magic scroll]);
->>>>>>> refs/remotes/origin/master
 		useTaffies($item[pulled violet taffy]);
 		buy(1, $item[glittery mascara]);
 		use(1, $item[glittery mascara]);
@@ -1178,10 +1132,7 @@ void mystTest() {
 		giantGrowth();
 		useIfHave(1, $item[bag of grain]);
 		useIfHave(1, $item[cuppa Wit tea]);
-<<<<<<< HEAD
-=======
 		useForTest("Myst");
->>>>>>> refs/remotes/origin/master
 		saveProgress(31);
 	}
 	if(statemap["questStage"] == 31) {
@@ -1203,13 +1154,9 @@ void moxieTest() {
 		useIfHave(1, $item[pressurized potion of pulchritude]);
 		useIfHave(1, $item[serum of sarcasm]);
 		useIfHave(1, $item[cuppa Dexteri tea]);
-<<<<<<< HEAD
-		useTaffies($item[pulled red taffy]);
-=======
 		useIfHave(1, $item[confiscated love note]);
 		useTaffies($item[pulled red taffy]);
 		useForTest("Moxie");
->>>>>>> refs/remotes/origin/master
 		buy(1, $item[hair spray]);
 		use(1, $item[hair spray]);
 		if (have_effect($effect[Expert Oiliness]) == 0) {
@@ -1234,10 +1181,7 @@ void famTest() {
 		useIfHave(1, $item[Gene Tonic: Construct]);
 		useIfHave(1, $item[cuppa Loyal tea]);
 		useTaffies($item[pulled blue taffy]);
-<<<<<<< HEAD
-=======
 		useForTest("Weight");
->>>>>>> refs/remotes/origin/master
 		if($item[vintage smart drink].available_amount() > 0) {
 			chateauCast($skill[The Ode to Booze]);
 			chateauCast($skill[The Ode to Booze]);
@@ -1264,10 +1208,7 @@ void noncombatTest() {
 		useIfHave(1, $item[shady shades]);
 		useIfHave(1, $item[squeaky toy rose]);
 		useIfHave(1, $item[cuppa Obscuri tea]);
-<<<<<<< HEAD
-=======
 		useForTest("NonCombat");
->>>>>>> refs/remotes/origin/master
 		saveProgress(38);
 	}
 	if(statemap["questStage"] == 38) {
@@ -1344,13 +1285,9 @@ void powerlevel() {
 					}
 					free_rest();
 				}
-<<<<<<< HEAD
-				if (have_familiar($familiar[Galloping Grill])) {
-=======
 				if (100familiar != $familiar[none]) {
 					use_familiar(100familiar);
 				} else if (have_familiar($familiar[Galloping Grill])) {
->>>>>>> refs/remotes/origin/master
 				  use_familiar($familiar[Galloping Grill]);
 				} else if (have_familiar($familiar[Hovering Sombrero])) {
 					use_familiar($familiar[Hovering Sombrero]);
@@ -1389,10 +1326,7 @@ void powerlevel() {
 					if (my_adventures() == 0) {
 						abort("Ran out of adventures.");
 					}
-<<<<<<< HEAD
-=======
 					getSRifCan();
->>>>>>> refs/remotes/origin/master
 					if (farmzone == $location[Video Game Level 1] && level2unlocked()) {
 						farmzone = $location[Video Game Level 2];
 					}
@@ -1448,13 +1382,9 @@ void getMilk() {
 	chateauCast($skill[Sauce Contemplation]);
 	restore_hp(my_maxhp());
 	familiar prevfam = my_familiar();
-<<<<<<< HEAD
-	if(have_familiar($familiar[Crimbo Shrub])) {
-=======
 	if(100familiar != $familiar[none]) {
 		use_familiar(100familiar);
 	} else if(have_familiar($familiar[Crimbo Shrub])) {
->>>>>>> refs/remotes/origin/master
 		use_familiar($familiar[Crimbo Shrub]);
 	}
 	if (get_property("chateauMonster") == "dairy goat") {
@@ -1578,10 +1508,7 @@ void getPotionIngredients() {
 	}
 	if (islandSkipped()) {
 		while ($item[cherry].available_amount() == 0 || $item[grapefruit].available_amount() == 0 || $item[lemon].available_amount() == 0) {
-<<<<<<< HEAD
-=======
 			getSRifCan();
->>>>>>> refs/remotes/origin/master
 			YRAdv($location[The Skeleton Store]);
 		}
 	} else {
@@ -1771,11 +1698,8 @@ void endDay1() { //final actions of day 1; spell test buffing goes here
 
 void setProperties() {
 	set_property("autoSatisfyWithNPCs", "true");
-<<<<<<< HEAD
-=======
 	set_property("choiceAdventure1106", "2");
 	set_property("choiceAdventure1107", "1");
->>>>>>> refs/remotes/origin/master
 	buffer page = visit_url("place.php?whichplace=airport");
 	if (contains_text(page, "airport_sleaze")) {
 		set_property("sleazyAirportAlways", "true");
@@ -1903,11 +1827,8 @@ void day2setup() {
 	summonDailyStuff();
 	harvestTea();
 	cli_execute("breakfast"); 
-<<<<<<< HEAD
-=======
 	hermit(99, $item[ten-leaf clover]);
 	use($item[ten-leaf clover].available_amount(), $item[ten-leaf clover]);
->>>>>>> refs/remotes/origin/master
 	if (get_property_int("_deckCardsDrawn") == 0) {
 		cli_execute("cheat forest");
 		cli_execute("cheat giant growth");
@@ -1967,7 +1888,6 @@ void doRun() { //main function
 		getCalderaDNA(); //elemental DNA tonic and fish hybrid
 		maybeUnlockIsland();
 		getG9Serum();
-		cli_execute("counters clear");
 		weaponTest();
 		itemTest();
 		getPotionIngredients();
