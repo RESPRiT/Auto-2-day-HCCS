@@ -26,6 +26,10 @@ if(get_property("acs_actuallyRun") == "") {
 	actuallyrun = get_property("acs_actuallyRun").to_boolean();
 }
 boolean buyChateau = get_property("acs_buyChateau").to_boolean();
+if(get_property("acs_powerLevelTurnsLeft") == "") {
+	set_property("acs_powerLevelTurnsLeft", 18);
+}
+boolean useCCS = get_property("acs_useCCS").to_boolean();
 
 // ---------------------------------------------------------------------------
 
@@ -45,46 +49,49 @@ int COILTEST = 11;
 boolean lockFamiliar = false; // internal familiar locking (not for 100% runs)
 
 // ---------------------------------------------------------------------------
-// statemap functions
+// statemap functions - basically legacy now
 
 int [string] statemap;
 
 void loadSave() {
 	file_to_map("AutoHCCSvars.txt", statemap);
-}
-
-void newSave() {
-	statemap["questStage"] = 0;
-	statemap["skippingIsland"] = 0;
-	statemap["run"] = get_property("knownAscensions").to_int();
-	map_to_file(statemap, "AutoHCCSvars.txt");
-}
-
-void saveProgress(int questStage) {
-	statemap["questStage"] = questStage;
-	map_to_file(statemap, "AutoHCCSvars.txt");
-}
-
-void saveChateau(int chateau) {
-	statemap["chateau"] = chateau;
-	map_to_file(statemap, "AutoHCCSvars.txt");
-}
-
-void skipIsland() {
-	statemap["skippingIsland"] = 1;
-	map_to_file(statemap, "AutoHCCSvars.txt");
-}
-
-boolean islandSkipped() {
-	if (statemap["skippingIsland"] == 1) {
-		return true;
-	} else {
-		return false;
+	if(statemap["questStage"] != -1) {
+		set_property("acs_questStage", statemap["questStage"]);
+		set_property("acs_skippingIsland", statemap["skipIsland"]);
+		set_property("acs_questStage", statemap["questStage"]);
+		set_property("acs_questStage", statemap["questStage"]);
+		
+		statemap["questStage"] = -1;
+		map_to_file(statemap, "AutoHCCSvars.txt");
 	}
 }
 
+void newSave() {
+	set_property("acs_chateau", 0);
+	set_property("acs_questStage", 0);
+	set_property("acs_skippingIsland", false);
+	set_property("acs_run", get_property("knownAscensions"));
+	set_property("acs_powerLevelTurnsLeft", 18);
+}
+
+void saveProgress(int questStage) {
+	set_property("acs_questStage", questStage);
+}
+
+void saveChateau(int chateau) {
+	set_property("acs_chateau", chateau);
+}
+
+void skipIsland() {
+	set_property("acs_skippingIsland", true);
+}
+
+boolean islandSkipped() {
+	return get_property("acs_skippingIsland").to_boolean();
+}
+
 boolean gr8psAvailable() {
-	if (statemap["chateau"] == 2) {
+	if (get_property("acs_chateau") == 2) {
 		return true;
 	} else {
 		return false;
@@ -561,7 +568,7 @@ void nightcap() {
 			drinkBestSize1();
 		}
 	} 
-	drink(1, $item[emergency margarita]);
+	overdrink(1, $item[emergency margarita]);
 }
 
 //---------------------------------------------------------------------------
@@ -570,6 +577,76 @@ void nightcap() {
 void powerlevelMood() {
 	cli_execute("mood PowerLevelMood");
 	cli_execute("mood clear");
+	
+	if (have_skill($skill[Elemental Saucesphere])) {
+		cli_execute("trigger lose_effect, Elemental Saucesphere, cast 1 Elemental Saucesphere");
+	}
+	
+	//Totem buffs
+	if (have_skill($skill[Astral Shell])) {
+		cli_execute("trigger lose_effect, Astral Shell, cast 1 Astral Shell");
+	}
+	if (have_skill($skill[Ghostly Shell])) {
+		cli_execute("trigger lose_effect, Ghostly Shell, cast 1 Ghostly Shell");
+	}
+	if (have_skill($skill[Reptilian Fortitude])) {
+		cli_execute("trigger lose_effect, Reptilian Fortitude, cast 1 Reptilian Fortitude");
+	}
+
+
+	//shitty buffs
+	if (have_skill($skill[Sauce Contemplation])) {
+		cli_execute("trigger lose_effect, Saucemastery, cast 1 Sauce Contemplation");
+	}
+	if (have_skill($skill[Manicotti Meditation])) {
+		cli_execute("trigger lose_effect, Pasta Oneness, cast 1 Manicotti Meditation");
+	}
+	if (have_skill($skill[Patience of the Tortoise])) {
+		cli_execute("trigger lose_effect, Patience of the Tortoise, cast 1 Patience of the Tortoise");
+	} 
+	
+	//AT buffs
+	if (have_skill($skill[Ur-Kel's Aria of Annoyance])) {
+		cli_execute("trigger lose_effect, Ur-Kel's Aria of Annoyance, cast 1 Ur-Kel's Aria of Annoyance");
+	}
+	if (have_skill($skill[Aloysius' Antiphon of Aptitude])) {
+		cli_execute("trigger lose_effect, Aloysius' Antiphon of Aptitude, cast 1 Aloysius' Antiphon of Aptitude");
+	}
+	if (have_skill($skill[Stevedave's Shanty of Superiority])) {
+		cli_execute("trigger lose_effect, Stevedave's Shanty of Superiority, cast 1 Stevedave's Shanty of Superiority");
+	}
+	if (have_skill($skill[The Magical Mojomuscular Melody])) {
+		cli_execute("trigger lose_effect, The Magical Mojomuscular Melody, cast 1 The Magical Mojomuscular Melody");
+	}
+
+	//ML
+	if (have_skill($skill[Pride of the Puffin])) {
+		cli_execute("trigger lose_effect, Pride of the Puffin, cast 1 Pride of the Puffin");
+	}
+	if (have_skill($skill[Drescher's Annoying Noise])) {
+		cli_execute("trigger lose_effect, Drescher's Annoying Noise, cast 1 Drescher's Annoying Noise");
+	}
+	
+	
+	//spell damage
+	if (have_skill($skill[Song of Sauce])) {
+		cli_execute("trigger lose_effect, Song of Sauce, cast 1 Song of Sauce");
+	}
+	
+	//weight
+	if (have_skill($skill[Leash of Linguini])) {
+		cli_execute("trigger lose_effect, Leash of Linguini, cast 1 Leash of Linguini");
+	}
+	if (have_skill($skill[Empathy of the Newt])) {
+		cli_execute("trigger lose_effect, Empathy, cast 1 Empathy of the Newt");
+	}
+
+	//+myst stats
+	if (have_skill($skill[Wry Smile])) {
+		cli_execute("trigger lose_effect, Wry Smile, cast 1 Wry Smile");
+	}
+	
+	cli_execute("mood execute");
 	cli_execute("mood execute");
 }
 
@@ -621,9 +698,9 @@ string customCombat(int round) {
 	if (round < 0) {
 		round = 0;
 	}
-	if (round == 0 && (have_skill($skill[Curse of Weaksauce]) && my_mp() >= (mp_cost($skill[Curse of Weaksauce]) + mp_cost($skill[Saucegeyser])))) {
+	if (round == 0 && (have_skill($skill[Curse of Weaksauce]) && my_mp() >= (mp_cost($skill[Curse of Weaksauce]) + mp_cost($skill[Saucegeyser]))) && !useCCS) {
 		return "skill Curse of Weaksauce";
-	} else if (have_skill($skill[Saucegeyser]) && my_mp() >= mp_cost($skill[Saucegeyser])) {
+	} else if (have_skill($skill[Saucegeyser]) && my_mp() >= mp_cost($skill[Saucegeyser]) && !useCCS) {
 		return "skill Saucegeyser";
 	} else {
 		print("Resorting to CCS", "red");
@@ -880,14 +957,14 @@ boolean getSRifCan() { //returns true if got it
 			generateEmergencyAdventures();
 		}
 		cli_execute("counters clear"); //otherwise it aborts
-		if (statemap["questStage"] < 120) { // before item test
+		if (get_property_int("acs_questStage") < 120) { // before item test
 			if (checkGarden() == "winter") {
 				adventure(1, $location[The Limerick Dungeon], "combat");
 			} else { 
 				adventure(1, $location[The Outskirts of Cobb's Knob], "combat");
 				use(1, $item[Knob Goblin lunchbox]);
 			}
-		} else if (statemap["questStage"] >= 120 && !islandSkipped()) {
+		} else if (get_property_int("acs_questStage") >= 120 && !islandSkipped()) {
 			adventure(1, $location[Hippy Camp], "combat");
 		} else {
 			return false;
@@ -908,12 +985,15 @@ boolean giantGrowth() {
 		familiar curfam = my_familiar();
 		if(alwaysFam == $familiar[none]) {
 			use_familiar($familiar[none]);
+			cli_execute("checkpoint");
+			cli_execute("unequip");
 			lockFamiliar = true;
 			adv1($location[The Dire Warren], -1, "combat");
 			lockFamiliar = false;
+			cli_execute("outfit checkpoint");
 			use_familiar(curfam);
 		} else {
-			if (get_property_boolean("stenchAirportAlways")) {
+			if (get_property_boolean("stenchAirportAlways") && elemental_resistance($element[stench]) > 30) {
 				growthzone = $location[Uncle Gator's Country Fun-Time Liquid Waste Sluice];
 				calderaMood(); //same deal here
 				if ($item[barrel lid].available_amount() > 0) {
@@ -1134,7 +1214,7 @@ void day1setup() {
 	if(alwaysFam != $familiar[none]) {
 		use_familiar(alwaysFam);
 	}
-	if(statemap["questStage"] >= 10) {
+	if(get_property_int("acs_questStage") >= 10) {
 		return;
 	}
 	visit_url("council.php");
@@ -1253,7 +1333,7 @@ void day1setup() {
 }
 
 void initialDrinks() { //drinking after day 1 setup but before coiling wire
-	if(statemap["questStage"] >= 20) {
+	if(get_property_int("acs_questStage") >= 20) {
 		return;
 	}
 	chateauCast($skill[The Ode to Booze]);
@@ -1272,7 +1352,7 @@ void initialDrinks() { //drinking after day 1 setup but before coiling wire
 }
 
 void doChateauPainting() {
-	if(statemap["questStage"] >= 30) {
+	if(get_property_int("acs_questStage") >= 30) {
 		return;
 	}
 	saveProgress(30);
@@ -1316,7 +1396,7 @@ void doChateauPainting() {
 }
 
 void maybeYRHotResistGear() {
-	if(statemap["questStage"] >= 35) {
+	if(get_property_int("acs_questStage") >= 35) {
 		return;
 	}
 	if ((have_effect($effect[Everything Looks Yellow]) > 0) || !get_property_boolean("hotAirportAlways")) {
@@ -1330,7 +1410,7 @@ void maybeYRHotResistGear() {
 }
 
 void coilTest() {
-	if(statemap["questStage"] >= 40) {
+	if(get_property_int("acs_questStage") >= 40) {
 		return;
 	}
 	earlyEats();
@@ -1344,7 +1424,7 @@ void coilTest() {
 }
 
 void openGuild() {
-	if(statemap["questStage"] >= 45) {
+	if(get_property_int("acs_questStage") >= 45) {
 		return;
 	}
 	if (gr8psAvailable()) {
@@ -1373,7 +1453,7 @@ void openGuild() {
 }
 
 void getPirateDNA() {
-	if(statemap["questStage"] >= 50) {
+	if(get_property_int("acs_questStage") >= 50) {
 		return;
 	}
 	if (get_property_boolean("stenchAirportAlways") && $item[DNA extraction syringe].available_amount() > 0) { 
@@ -1390,7 +1470,7 @@ void getPirateDNA() {
 }
 
 void getCalderaDNA() {
-	if(statemap["questStage"] >= 60) {
+	if(get_property_int("acs_questStage") >= 60) {
 		return;
 	}
 	if (get_property_boolean("hotAirportAlways") && $item[DNA extraction syringe].available_amount() > 0) {
@@ -1446,7 +1526,7 @@ void getCalderaDNA() {
 }
 
 void maybeUnlockIsland() { //either unlocks island or decides to just do skeleton store instead later
-	if(statemap["questStage"] >= 70) {
+	if(get_property_int("acs_questStage") >= 70) {
 		return;
 	}
 	if (gr8psAvailable()) {
@@ -1470,14 +1550,14 @@ void maybeUnlockIsland() { //either unlocks island or decides to just do skeleto
 }
 
 void getG9Serum() { //like 0-7 turns prolly
-	if(statemap["questStage"] >= 80) {
+	if(get_property_int("acs_questStage") >= 80) {
 		return;
 	}
 	if (!get_property_boolean("spookyAirportAlways") || (!have_skill($skill[Transcendent Olfaction]) && !alwaysG9)) {
 		saveProgress(80);
 		return;
 	}
-	if(statemap["questStage"] == 70) {
+	if(get_property_int("acs_questStage") == 70) {
 		if (my_mp() < (mp_cost($skill[Transcendent Olfaction]) + mp_cost($skill[Curse of Weaksauce]) + mp_cost($skill[Saucegeyser]))) {
 			if (!free_rest()) {
 				restore_mp(mp_cost($skill[Transcendent Olfaction])+ mp_cost($skill[Curse of Weaksauce]) + mp_cost($skill[Saucegeyser]));
@@ -1501,7 +1581,7 @@ void getG9Serum() { //like 0-7 turns prolly
 			abort("Checkpoint: Before G-9 collecting.");
 		}
 	}
-	if(statemap["questStage"] == 71) {
+	if(get_property_int("acs_questStage") == 71) {
 		lockFamiliar = true;
 		boolean florist = false;
 		while(($item[experimental serum G-9].available_amount() < 1) || ($item[limp broccoli].available_amount() < 1)) {
@@ -1523,10 +1603,11 @@ void getG9Serum() { //like 0-7 turns prolly
 }
 
 void weaponTest() {
-	if(statemap["questStage"] >= 110) {
+	if(get_property_int("acs_questStage") >= 110) {
 		return;
 	}
-	if(statemap["questStage"] == 80) {
+	
+	if(get_property_int("acs_questStage") == 80) {
 		//chataeau rest while buffing dmg
 		chateauCast($skill[The Ode to Booze]);
 		visit_url("clan_viplounge.php?preaction=speakeasydrink&drink=6&pwd="+my_hash()); //sockdollager
@@ -1556,7 +1637,7 @@ void weaponTest() {
 		saveProgress(90);
 	}
 	
-	if(statemap["questStage"] == 90) {
+	if(get_property_int("acs_questStage") == 90) {
 		//consume astrals
 		if ($item[astral energy drink].available_amount() > 0) {
 			chew(1, $item[astral energy drink]);
@@ -1572,14 +1653,14 @@ void weaponTest() {
 		saveProgress(100);
 	}
 	
-	if(statemap["questStage"] == 100) {
+	if(get_property_int("acs_questStage") == 100) {
 		maximize("weapon dmg", false);
 		saveProgress(101);
 		if (doCheckpoints) {
 			abort("Checkpoint: Before Weapon Damage Test: "+advCost(WPNTEST)+" turns.");
 		}
 	}
-	if(statemap["questStage"] >= 110) {
+	if(get_property_int("acs_questStage") >= 110) {
 		return;
 	}
 	doTest(WPNTEST);
@@ -1587,7 +1668,7 @@ void weaponTest() {
 }
 
 void eatMoreFoodD1() {
-	if(statemap["questStage"] >= 120) {
+	if(get_property_int("acs_questStage") >= 120) {
 		return;
 	}
 	//eat food
@@ -1608,10 +1689,10 @@ void eatMoreFoodD1() {
 }
 
 void itemTest() {       
-	if(statemap["questStage"] >= 140) {
+	if(get_property_int("acs_questStage") >= 140) {
 		return;
 	}
-	if(statemap["questStage"] == 120) {
+	if(get_property_int("acs_questStage") == 120) {
 		//buff item drop
 		useIfHave(1, $item[Gene Tonic: Pirate]);
 		useIfHave(1, $item[tin cup]);
@@ -1638,14 +1719,14 @@ void itemTest() {
 		basicItemDropBuffs();
 		saveProgress(130);
 	}
-	if(statemap["questStage"] == 130) {
+	if(get_property_int("acs_questStage") == 130) {
 		maximize("item drop", false);
 		saveProgress(131);
 		if (doCheckpoints) {
 			abort("Checkpoint: Before Item Test: "+advCost(ITEMTEST)+" turns.");
 		}
 	}
-	if(statemap["questStage"] >= 140) {
+	if(get_property_int("acs_questStage") >= 140) {
 		return;
 	}
 	doTest(ITEMTEST);
@@ -1653,10 +1734,10 @@ void itemTest() {
 }
 
 void getPotionIngredients() {
-	if(statemap["questStage"] >= 150) {
+	if(get_property_int("acs_questStage") >= 150) {
 		return;
 	}
-	if(statemap["questStage"] == 140) {
+	if(get_property_int("acs_questStage") == 140) {
 		if ($item[handful of Smithereens].available_amount() > 0 && $item[Golden Light].available_amount() < 1) {
 			create(1, $item[Golden Light]);
 		} 
@@ -1708,7 +1789,7 @@ void getPotionIngredients() {
 }
 
 void makePotionsDay1() {
-	if(statemap["questStage"] >= 160) {
+	if(get_property_int("acs_questStage") >= 160) {
 		return;
 	}
 
@@ -1736,10 +1817,10 @@ void makePotionsDay1() {
 }
 
 void endDay1() { //final actions of day 1; spell test buffing goes here
-	if(statemap["questStage"] >= 170) {
+	if(get_property_int("acs_questStage") >= 170) {
 		return;
 	}
-	if(statemap["questStage"] == 160) {
+	if(get_property_int("acs_questStage") == 160) {
 		if ((have_effect($effect[Smithsness Presence]) == 0 && $item[handful of Smithereens].available_amount() > 0) || (my_adventures() < 1)) {
 			chew(1, $item[handful of Smithereens]);
 		}
@@ -1784,7 +1865,7 @@ void endDay1() { //final actions of day 1; spell test buffing goes here
 			abort("Checkpoint: Before Nightcap.");
 		}
 	}
-	if(statemap["questStage"] >= 170) {
+	if(get_property_int("acs_questStage") >= 170) {
 		return;
 	}
 	nightcap();
@@ -1796,7 +1877,7 @@ void endDay1() { //final actions of day 1; spell test buffing goes here
 // Day 2 functions
 
 void day2setup() {
-	if(statemap["questStage"] >= 180) {
+	if(get_property_int("acs_questStage") >= 180) {
 		return;
 	}
 	chateaumantegna_buyStuff($item[Ceiling Fan]);
@@ -1837,10 +1918,10 @@ void day2setup() {
 }
 
 void spellTest() { //buffing for this test is actually handled at the end of day 1 so there's not much here.
-	if(statemap["questStage"] >= 190) {
+	if(get_property_int("acs_questStage") >= 190) {
 		return;
 	}
-	if(statemap["questStage"] == 180) {
+	if(get_property_int("acs_questStage") == 180) {
 		float spell_damage_percent = numeric_modifier("Spell Damage Percent");
 		int current_saved_turns = floor(spell_damage_percent / 50);
 		int saved_turns = floor((spell_damage_percent + 10) / 50);
@@ -1863,7 +1944,7 @@ void spellTest() { //buffing for this test is actually handled at the end of day
 		}
 	}
 
-	if(statemap["questStage"] >= 190) {
+	if(get_property_int("acs_questStage") >= 190) {
 		return;
 	}
 	doTest(SPELLTEST);
@@ -1871,7 +1952,7 @@ void spellTest() { //buffing for this test is actually handled at the end of day
 }
 
 void getHotResistGear() {
-	if(statemap["questStage"] >= 200) {
+	if(get_property_int("acs_questStage") >= 200) {
 		return;
 	}
 	if ($item[Saucepanic].available_amount() > 0) {
@@ -1908,7 +1989,7 @@ void getHotResistGear() {
 }
 
 void makePotionsDay2() {
-	if(statemap["questStage"] >= 210) {
+	if(get_property_int("acs_questStage") >= 210) {
 		return;
 	}
 	if ($item[olive].available_amount() > 0 && $item[serum of sarcasm].available_amount() == 0) { 
@@ -1923,7 +2004,7 @@ void makePotionsDay2() {
 }
 
 void hotTest() {
-	if(statemap["questStage"] == 210) {
+	if(get_property_int("acs_questStage") == 210) {
 		pulverize($item[dirty rigging rope]);
 		pulverize($item[sewage-clogged pistol]);
 		pulverize($item[dirty hobo gloves]);
@@ -1974,7 +2055,7 @@ void hotTest() {
 		saveProgress(220);
 	} 
 	
-	if(statemap["questStage"] == 220) {
+	if(get_property_int("acs_questStage") == 220) {
 		eatHotFood();
 		chateauCast($skill[Elemental Saucesphere]);
 		chateauCast($skill[Astral Shell]);
@@ -1990,7 +2071,7 @@ void hotTest() {
 		saveProgress(230);
 	}
 
-	if(statemap["questStage"] == 230) {
+	if(get_property_int("acs_questStage") == 230) {
 		maximize("hot res", false);
 		saveProgress(231);
 		if (doCheckpoints) {
@@ -1998,7 +2079,7 @@ void hotTest() {
 		}
 	}
 
-	if(statemap["questStage"] >= 240) {
+	if(get_property_int("acs_questStage") >= 240) {
 		return;
 	}
 	doTest(HOTTEST);
@@ -2006,7 +2087,7 @@ void hotTest() {
 }
 
 void powerlevel() {
-	if(statemap["questStage"] >= 260) {
+	if(get_property_int("acs_questStage") >= 260) {
 		return;
 	}
 	if (!hasScalingZone()) {
@@ -2015,7 +2096,7 @@ void powerlevel() {
 		return;
 	}
 
-	if(statemap["questStage"] == 240) {
+	if(get_property_int("acs_questStage") == 240) {
 		// --------------------------------------------------
 		// ML
 		if ((have_effect($effect[The Dinsey Look]) == 0) && ($item[FunFunds&trade;].available_amount() > 0)) { 
@@ -2184,10 +2265,10 @@ void powerlevel() {
 			abort("Checkpoint: Before Powerleveling.  G-9: "+g9val());
 		}
 	}
-	if(statemap["questStage"] == 250) {
+	if(get_property_int("acs_questStage") == 250) {
 		lockFamiliar = true;
 		location farmzone;
-		if (get_property_boolean("stenchAirportAlways")) {
+		if (get_property_boolean("stenchAirportAlways") && elemental_resistance($element[stench]) > 30) {
 			farmzone = $location[Uncle Gator's Country Fun-Time Liquid Waste Sluice];
 		} else if (get_property_boolean("spookyAirportAlways")) {
 			farmzone = $location[The Deep Dark Jungle];
@@ -2199,9 +2280,8 @@ void powerlevel() {
 			farmzone = $location[Video Game Level 1];
 		}
 		powerlevelMood();
-		int pl_started = total_turns_played();
 		boolean friars = false;
-		while (total_turns_played() - pl_started < 18) {
+		while (get_property("acs_powerLevelTurnsLeft").to_int() > 0) {
 			if (my_adventures() == 0) {
 				abort("Ran out of adventures.");
 			}
@@ -2217,6 +2297,7 @@ void powerlevel() {
 				use(1, $item[Dinsey face paint]);
 			}
 			combatAdv(farmzone, true);
+			set_property("acs_powerLevelTurnsLeft", get_property("acs_powerLevelTurnsLeft").to_int() - 1);
 			if (friars == false) {
 				cli_execute("florist plant War Lily"); # indoor +30 ML
 				cli_execute("florist plant Impatiens"); # indoor +25% init
@@ -2239,7 +2320,7 @@ void powerlevel() {
 			abort("Checkpoint: After Powerleveling.");
 		}
 	}
-	if(statemap["questStage"] >= 260) {
+	if(get_property_int("acs_questStage") >= 260) {
 		return;
 	}
 	cli_execute("shrug antiphon");
@@ -2249,10 +2330,10 @@ void powerlevel() {
 }
 
 void hpTest() {
-	if(statemap["questStage"] >= 280) {
+	if(get_property_int("acs_questStage") >= 280) {
 		return;
 	}
-	if(statemap["questStage"] == 260) {
+	if(get_property_int("acs_questStage") == 260) {
 		useIfHave(1, $item[oil of expertise]);
 		useIfHave(1, $item[jar of &quot;Creole Lady&quot; marrrmalade]);
 		useIfHave(1, $item[scroll of Puddingskin]);
@@ -2292,7 +2373,7 @@ void hpTest() {
 		saveProgress(270);
 	}
 	
-	if(statemap["questStage"] == 270) {
+	if(get_property_int("acs_questStage") == 270) {
 		maximize("hp", false);
 		if(advCost(HPTEST) > 4) {
 			chateauCast($skill[The Ode to Booze]);
@@ -2304,7 +2385,7 @@ void hpTest() {
 			abort("Checkpoint: Before HP Test: "+advCost(HPTEST)+" turns.");
 		}
 	}
-	if(statemap["questStage"] >= 280) {
+	if(get_property_int("acs_questStage") >= 280) {
 		return;
 	}
 	if(doTest(HPTEST)) {
@@ -2314,10 +2395,10 @@ void hpTest() {
 }
 
 void muscleTest() {
-	if(statemap["questStage"] >= 300) {
+	if(get_property_int("acs_questStage") >= 300) {
 		return;
 	}
-	if(statemap["questStage"] == 280) {
+	if(get_property_int("acs_questStage") == 280) {
 		if (have_effect($effect[Power Ballad of the Arrowsmith]) == 0) {
 			chateauCast($skill[The Power Ballad of the Arrowsmith]);
 		} 
@@ -2348,14 +2429,14 @@ void muscleTest() {
 		giantGrowth();
 		saveProgress(290);
 	}
-	if(statemap["questStage"] == 290) {
+	if(get_property_int("acs_questStage") == 290) {
 		maximize("muscle", false);
 		saveProgress(291);
 		if (doCheckpoints) {
 			abort("Checkpoint: Before Muscle Test: "+advCost(MUSTEST)+" turns.");
 		}
 	}
-	if(statemap["questStage"] >= 300) {
+	if(get_property_int("acs_questStage") >= 300) {
 		return;
 	}
 	doTest(MUSTEST);
@@ -2363,10 +2444,10 @@ void muscleTest() {
 }
 
 void mystTest() {
-	if(statemap["questStage"] >= 320) {
+	if(get_property_int("acs_questStage") >= 320) {
 		return;
 	}
-	if(statemap["questStage"] == 300) {
+	if(get_property_int("acs_questStage") == 300) {
 		chateauCast($skill[The Magical Mojomuscular Melody]);
 		chateauCast($skill[Sauce Contemplation]);
 		chateauCast($skill[Manicotti Meditation]);
@@ -2399,14 +2480,14 @@ void mystTest() {
 		useIfHave(1, $item[Gene Tonic: Dude]);
 		saveProgress(310);
 	}
-	if(statemap["questStage"] == 310) {
+	if(get_property_int("acs_questStage") == 310) {
 		maximize("myst", false);
 		saveProgress(311);
 		if (doCheckpoints) {
 			abort("Checkpoint: Before Myst Test: "+advCost(MYSTTEST)+" turns.");
 		}
 	}
-	if(statemap["questStage"] >= 320) {
+	if(get_property_int("acs_questStage") >= 320) {
 		return;
 	}
 	doTest(MYSTTEST);
@@ -2414,10 +2495,10 @@ void mystTest() {
 }
 
 void moxieTest() {
-	if(statemap["questStage"] >= 340) {
+	if(get_property_int("acs_questStage") >= 340) {
 		return;
 	}
-	if(statemap["questStage"] == 320) {
+	if(get_property_int("acs_questStage") == 320) {
 		chateauCast($skill[The Moxious Madrigal]);
 		chateauCast($skill[Disco Fever]);
 		chateauCast($skill[Moxie of the Mariachi]);
@@ -2460,14 +2541,14 @@ void moxieTest() {
 		useIfHave(1, $item[pocket maze]);
 		saveProgress(330);
 	}
-	if(statemap["questStage"] == 330) {
+	if(get_property_int("acs_questStage") == 330) {
 		maximize("moxie", false);
 		saveProgress(331);
 		if (doCheckpoints) {
 			abort("Checkpoint: Before Moxie Test: "+advCost(MOXTEST)+" turns.");
 		}
 	}
-	if(statemap["questStage"] >= 340) {
+	if(get_property_int("acs_questStage") >= 340) {
 		return;
 	}
 	doTest(MOXTEST);
@@ -2475,10 +2556,10 @@ void moxieTest() {
 }
 
 void famTest() {
-	if(statemap["questStage"] >= 360) {
+	if(get_property_int("acs_questStage") >= 360) {
 		return;
 	}
-	if(statemap["questStage"] == 340) {
+	if(get_property_int("acs_questStage") == 340) {
 		chateauCast($skill[Empathy of the Newt]);
 		chateauCast($skill[Leash of Linguini]);
 		useIfHave(1, $item[cuppa Loyal tea]);
@@ -2495,14 +2576,14 @@ void famTest() {
 		}
 		saveProgress(350);
 	}
-	if(statemap["questStage"] == 350) {
+	if(get_property_int("acs_questStage") == 350) {
 		maximize("familiar weight", false);
 		saveProgress(351);
 		if (doCheckpoints) {
 			abort("Checkpoint: Before Familiar Weight Test: "+advCost(FAMTEST)+" turns.");
 		}
 	}
-	if(statemap["questStage"] >= 360) {
+	if(get_property_int("acs_questStage") >= 360) {
 		return;
 	}
 	doTest(FAMTEST);
@@ -2510,7 +2591,7 @@ void famTest() {
 }
 
 void maybeGetDeodorant() {
-	if(statemap["questStage"] >= 370) {
+	if(get_property_int("acs_questStage") >= 370) {
 		return;
 	}
 	if(!islandSkipped() && YRsourceAvailable() && have_effect($effect[Everything Looks Yellow]) == 0) {
@@ -2528,10 +2609,10 @@ void maybeGetDeodorant() {
 }
 
 void noncombatTest() {
-	if(statemap["questStage"] >= 390) {
+	if(get_property_int("acs_questStage") >= 390) {
 		return;
 	}
-	if(statemap["questStage"] == 370) {
+	if(get_property_int("acs_questStage") == 370) {
 		chateauCast($skill[The Sonata of Sneakiness]);
 		chateauCast($skill[Smooth Movement]);
 		if ($item[snow berries].available_amount() > 0) {
@@ -2545,14 +2626,14 @@ void noncombatTest() {
 		useForTest("NonCombat");
 		saveProgress(380);
 	}
-	if(statemap["questStage"] == 380) {
+	if(get_property_int("acs_questStage") == 380) {
 		maximize("-combat -tie", false);
 		saveProgress(381);
 		if (doCheckpoints) {
 			abort("Checkpoint: Before Non Combat Test: "+advCost(COMTEST)+" turns.");
 		}
 	}
-	if(statemap["questStage"] >= 390) {
+	if(get_property_int("acs_questStage") >= 390) {
 		return;
 	}
 	doTest(COMTEST); 
@@ -2589,7 +2670,7 @@ void checkPrereq() {
 void doRun() { //main function
 	if (my_daycount() == 1 && actuallyrun) {
 		print("Running HCCS Day 1...");
-		if(get_property("knownAscensions").to_int() != statemap["run"]) {
+		if(get_property("knownAscensions").to_int() != get_property("acs_run").to_int()) {
 			newSave();
 		}
 		day1setup(); // Progress #10
@@ -2606,9 +2687,6 @@ void doRun() { //main function
 		eatMoreFoodD1(); // Progress #120, 131 adv
 		itemTest(); // Progess #130-140, 131 adv, 44-48 adv used
 		getPotionIngredients(); // Progress #150, 179 adv, 1-4 advs used, shrub 
-		if (gr8psAvailable() && ($item[yellow pixel].available_amount() < 10) && ($item[power pill].available_amount() < 1)) {
-			abort("Missing "+(10-$item[yellow pixel].available_amount())+" yellow pixel or "+(1-$item[power pill].available_amount())+" power pill");
-		}
 		makePotionsDay1(); // Progress #160, 182 adv
 		endDay1(); // Progress #170, 182 adv, 1 adv used
 		print("Day 1 complete!!", "green");
