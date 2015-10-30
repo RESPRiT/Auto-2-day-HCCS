@@ -1529,7 +1529,7 @@ void openGuild() {
 		basicItemDropBuffs();
 		chateauCast($skill[Musk of the Moose]);
 		chateauCast($skill[Carlweather's Cantata of Confrontation]);
-		maximize("item drop", false);
+		maximize("item drop -equip heat-resistant necktie -equip heat-resistant gloves -equip lava-proof pants", false);
 		adventure(1, $location[The Haunted Pantry], "combat");
 		cli_execute("guild");
 		visit_url("guild.php?place=paco");
@@ -1674,7 +1674,7 @@ void getG9Serum() { //like 0-7 turns prolly
 		}
 		setItemFamiliar();
 		basicItemDropBuffs();
-		maximize("item drop +equip personal ventilation unit", false);
+		maximize("item drop +equip personal ventilation unit -equip heat-resistant necktie -equip heat-resistant gloves -equip lava-proof pants", false);
 		if(!g9Day2) {
 			saveProgress(71);
 		} else {
@@ -1955,7 +1955,7 @@ void endDay1() { //final actions of day 1; spell test buffing goes here
 				cast($skill[Summon Taffy]);
 			}
 		}
-		maximize("adv", false);
+		maximize("adv -equip heat-resistant necktie -equip heat-resistant gloves -equip lava-proof pants", false);
 		if (smashHippyStone) {
 			chateaumantegna_buyStuff($item[antler chandelier]);
 		} else {
@@ -2314,7 +2314,7 @@ void powerlevel() {
 		useIfHave(7, $item[pulled violet taffy]);
 		useIfHave(7, $item[pulled blue taffy]); // up to +5lb & + 10 fam exp @ 50 adv
 
-		maximize("myst", false);
+		maximize("myst -equip heat-resistant necktie -equip heat-resistant gloves -equip lava-proof pants", false);
 		equipIfHave($item[barrel lid]); // +50 ML
 		saveProgress(250);
 		if (doCheckpoints) {
@@ -2738,6 +2738,8 @@ void doRun() { //main function
 		maybeUnlockIsland(); // Progress #70
 		if(!g9Day2) {
 			getG9Serum(); // Progress #80, 71 adv, 2-7 advs used, cheerleader (4)
+		} else if(get_property_int("acs_questStage") < 80){
+			saveProgress(80);
 		}
 		weaponTest(); // Progress #90-110, 75 adv, 56 adv used
 		eatMoreFoodD1(); // Progress #120, 131 adv
