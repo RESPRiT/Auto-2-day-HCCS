@@ -27,3 +27,4 @@
 27	acs_gr8pDropThreshold	int	Minimum percentage chance of getting the gr8ps to drop with +item, otherwise YR	dev
 28	acs_g9Threshold	int	Minimum G9 bonus percentage to attempt to get the potion (only affects getting G9 on day 2)	exp
 29	acs_useNorth	boolean	Use Song of the North over Song of the Sauce for combat (for CCS)	exp
+30	acs_advRestThreshold	int	If meat available becomes less than this, use adventures to rest	exp

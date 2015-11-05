@@ -41,6 +41,7 @@ if(get_property("acs_gr8pDropThreshold").to_int() > 100 || get_property("acs_gr8
 }
 float gr8pDropThreshold = ((get_property("acs_gr8pDropThreshold").to_int() / 40.0) - 1) * 100;
 boolean useNorth = get_property("acs_useNorth").to_boolean();
+int advRestThreshold = get_property("acs_advRestThreshold").to_int();
 
 // ---------------------------------------------------------------------------
 
@@ -102,7 +103,7 @@ boolean islandSkipped() {
 }
 
 boolean gr8psAvailable() {
-	if (get_property("acs_chateau") == 2) {
+	if (get_property("acs_chateau") == 2 && (my_primestat() == $stat[mysticality] || my_class() == $class[accordion thief])) {
 		return true;
 	} else {
 		return false;
@@ -336,6 +337,10 @@ boolean free_rest() {
 	}
 }
 
+void adv_rest() {
+	visit_url("place.php?whichplace=chateau&action=chateau_restlabel");
+}
+
 void cast(skill which) { //just casts it if you have it.
 	if (have_skill(which)) {
 		use_skill(which);
@@ -360,8 +365,14 @@ void chateauCast(skill which) { //casts the skill as normal (if you have it), un
 				use_skill(which);
 				return;
 			}
-			restore_mp(mp_cost(which));
-			print("Ran out of MP and free rests; had to restort to meat-MP instead", "red");
+			if(my_meat() <= advRestThreshold && my_adventures() > 0) {
+				adv_rest();
+				print("I'm done spending meat on MP; had to resort to using an adventure to rest", "red");
+			} else {
+				restore_mp(mp_cost(which));
+				print("Ran out of MP and free rests; had to resort to meat-MP instead", "red");
+			}
+
 			if (my_mp() >= mp_cost(which)) {
 				use_skill(which);
 			} else {
@@ -684,7 +695,7 @@ void powerlevelMood() {
 	if (have_skill($skill[The Magical Mojomuscular Melody]) && my_primestat() == $stat[mysticality]) {
 		cli_execute("trigger lose_effect, The Magical Mojomuscular Melody, cast 1 The Magical Mojomuscular Melody");
 	} else if (have_skill($skill[The Power Ballad of the Arrowsmith]) && my_primestat() == $stat[muscle]) {
-		cli_execute("trigger lose_effect, The Power Ballad of the Arrowsmith, cast 1 The Power Ballad of the Arrowsmith");
+		cli_execute("trigger lose_effect, Power Ballad of the Arrowsmith, cast 1 Power Ballad of the Arrowsmith");
 	} else if (have_skill($skill[The Moxious Madrigal]) && my_primestat() == $stat[moxie]) {
 		cli_execute("trigger lose_effect, The Moxious Madrigal, cast 1 The Moxious Madrigal");
 	}
@@ -742,7 +753,7 @@ void calderaMood() {
 		cli_execute("trigger lose_effect, Springy Fusilli, cast 1 Springy Fusilli");
 	} 
 	if (have_skill($skill[The Power Ballad of the Arrowsmith])) {
-		cli_execute("trigger lose_effect, Power Ballad of the Arrowsmith, cast 1 The Power Ballad of the Arrowsmith");
+		cli_execute("trigger lose_effect, Power Ballad of the Arrowsmith, cast 1 Power Ballad of the Arrowsmith");
 	} 
 	if (have_skill($skill[Suspicious Gaze])) {
 		cli_execute("trigger lose_effect, Suspicious Gaze, cast 1 Suspicious Gaze");
@@ -1369,7 +1380,19 @@ void day1setup() {
 		cli_execute("cheat mickey");
 		autosell(1, $item[1952 Mickey Mantle card]);
 		cli_execute("cheat giant growth");
-		cli_execute("cheat empress");
+		switch(my_primestat()) {
+			case $stat[mysticality]:
+				cli_execute("cheat empress");
+				break;
+			case $stat[moxie]:
+				cli_execute("cheat lovers");
+				break;
+			case $stat[muscle]:
+				cli_execute("cheat world");
+				break;
+			default:
+				break;
+		}
 	} else {
 		print("Skipping deck draws...");
 	}
@@ -1544,13 +1567,19 @@ void openGuild() {
 	if(get_property_int("acs_questStage") >= 45) {
 		return;
 	}
-	if (gr8psAvailable()) {
+	if (gr8psAvailable() && knoll_available())) {
 		setFamiliar();
 		basicItemDropBuffs();
 		chateauCast($skill[Musk of the Moose]);
 		chateauCast($skill[Carlweather's Cantata of Confrontation]);
 		maximize("item drop -equip heat-resistant necktie -equip heat-resistant gloves -equip lava-proof pants", false);
-		adventure(1, $location[The Haunted Pantry], "combat");
+		if(my_primestat() == $stat[mysticality]) {
+			adventure(1, $location[The Haunted Pantry], "combat");
+		} else if (my_primestat() == $stat[moxie]){
+			adventure(1, $location[The Sleazy Back Alley], "combat");
+		} else {
+			adventure(1, $location[Outskirts of Cobb's Knob], "combat");
+		}
 		cli_execute("guild");
 		visit_url("guild.php?place=paco");
 		visit_url("guild.php?place=paco");
@@ -1562,7 +1591,13 @@ void openGuild() {
 		if (doghouseAvailable()) {
 			while($item[Ghost Dog Chow].available_amount() == 0) {
 				getSRifCan();
-				adv1($location[The Haunted Pantry], -1, "combat");
+				if(my_primestat() == $stat[mysticality]) {
+					adv1($location[The Haunted Pantry], -1, "combat");
+				} else if(my_primestat() == $stat[moxie]){
+					adv1($location[The Sleazy Back Alley], -1, "combat");
+				} else {
+					adv1($location[Outskirts of Cobb's Knob], -1, "combat");
+				}
 			}
 		}
 	}
@@ -1930,7 +1965,7 @@ void makePotionsDay1() {
 	}
 
 	// milk has been created earlier if a dairy goat was the painting
-	if ($item[gr8ps].available_amount() > 0 && $item[potion of temporary gr8tness].available_amount() == 0 && my_primestat() != $stat[muscle]) {
+	if ($item[gr8ps].available_amount() > 0 && $item[potion of temporary gr8tness].available_amount() == 0 && my_primestat() == $stat[mysticality]) {
 		create(1, $item[potion of temporary gr8tness]); # guild must be open for this
 	}
 
@@ -2234,7 +2269,7 @@ void powerlevel() {
 			buy($coinmaster[The Dinsey Company Store], 1, $item[Dinsey face paint]);
 			use(1, $item[Dinsey face paint]); // +40 ML @ 20 adv
 		}
-		if ((g9val() > 300 && $item[yellow pixel].available_amount() >= 10) ||
+		if ((g9val() > 300 && $item[yellow pixel].available_amount() >= 10 && knoll_available()) ||
 		     (($item[yellow pixel].available_amount() >= 10) && ($item[yellow pixel].available_amount() < 15))) {
 			create(1, $item[yellow pixel potion]);
 			use(1, $item[yellow pixel potion]); // +25 ML @ 20 adv
@@ -2427,6 +2462,13 @@ void powerlevel() {
 			if (contains_text(page, "Human-Machine Hybrid") && $item[Gene Tonic: Construct].available_amount() == 0) {
 				visit_url("campground.php?action=dnapotion");
 			}
+			// gr8ness is weird for accordion thieves
+			if ($item[gr8ps].available_amount() > 0 && $item[potion of temporary gr8tness].available_amount() == 0 && my_class() == $class[accordion thief] && my_level() >= 9) {
+				create(1, $item[potion of temporary gr8tness]); # guild must be open for this
+				while(get_property_int("acs_powerLevelTurnsLeft") - have_effect($effect[temporary gr8tness]) > 0) {
+					useIfHave(1, $item[potion of temporary gr8tness]);
+				}
+			}
 		}
 		cli_execute("mood clear");
 		lockFamiliar = false;
@@ -2442,7 +2484,7 @@ void powerlevel() {
 	cli_execute("shrug ur-kel");
 	cli_execute("shrug mojomuscula");
 	cli_execute("shrug The Moxious Madrigal");
-	cli_execute("shrug The Power Ballad of the Arrowsmith");
+	cli_execute("shrug Power Ballad of the Arrowsmith");
 	saveProgress(260);
 }
 
