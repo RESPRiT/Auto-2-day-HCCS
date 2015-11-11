@@ -42,6 +42,7 @@ if(get_property("acs_gr8pDropThreshold").to_int() > 100 || get_property("acs_gr8
 float gr8pDropThreshold = ((get_property("acs_gr8pDropThreshold").to_int() / 40.0) - 1) * 100;
 boolean useNorth = get_property("acs_useNorth").to_boolean();
 int advRestThreshold = get_property("acs_advRestThreshold").to_int();
+boolean getCar = get_property("acs_getCar").to_boolean();
 
 // ---------------------------------------------------------------------------
 
@@ -1369,6 +1370,7 @@ void day1setup() {
 	if ($item[astral six-pack].available_amount() == 1) {
 		use(1, $item[astral six-pack]);
 	}
+	
 	if ($item[bitchin' meatcar].available_amount() == 0 && knoll_available()) {
 		create(1, $item[bitchin' meatcar]);
 	}
@@ -1453,7 +1455,7 @@ void day1setup() {
 	if(canadia_available()) {
 		change_mcd(11);
 	} else {
-		// lol sorry gnomes are just not optimal 
+		// gnomes aren't optimal silly 
 	}
 	if ($item[transmission from planet Xi].available_amount() > 0) {
 		use(1, $item[transmission from planet Xi]);
@@ -1567,7 +1569,7 @@ void openGuild() {
 	if(get_property_int("acs_questStage") >= 45) {
 		return;
 	}
-	if (gr8psAvailable() && knoll_available())) {
+	if (gr8psAvailable() && (knoll_available() || getCar)) {
 		setFamiliar();
 		basicItemDropBuffs();
 		chateauCast($skill[Musk of the Moose]);
@@ -1578,9 +1580,23 @@ void openGuild() {
 		} else if (my_primestat() == $stat[moxie]){
 			adventure(1, $location[The Sleazy Back Alley], "combat");
 		} else {
-			adventure(1, $location[Outskirts of Cobb's Knob], "combat");
+			adventure(1, $location[The Outskirts of Cobb's Knob], "combat");
 		}
 		cli_execute("guild");
+		if(getCar && !knoll_available()) {
+			print("You're not under the knoll sign and have opted to get the car parts anyways! Yay!", "blue");
+			setItemFamiliar();
+			maximize("item", false);
+			
+			while(!create(1, $item[bitchin' meatcar])) {
+				adv1($location[The Degrassi Knoll Garage], -1, "combat");
+				useIfHave(1, $item[Gnollish toolbox]);
+			}
+			
+			if(gnomads_available()) {
+				change_mcd(10); // you made gnomes optimal!
+			}
+		}
 		visit_url("guild.php?place=paco");
 		visit_url("guild.php?place=paco");
 		visit_url("choice.php?pwd&whichchoice=930&option=1");
@@ -1596,7 +1612,7 @@ void openGuild() {
 				} else if(my_primestat() == $stat[moxie]){
 					adv1($location[The Sleazy Back Alley], -1, "combat");
 				} else {
-					adv1($location[Outskirts of Cobb's Knob], -1, "combat");
+					adv1($location[The Outskirts of Cobb's Knob], -1, "combat");
 				}
 			}
 		}
@@ -1870,7 +1886,7 @@ void itemTest() {
 		useIfHave(1, $item[cyclops eyedrops]);
 		useIfHave(1, $item[cuppa Serendipi tea]);
 		useForTest("Item");
-		if(get_property_boolean("barrelShrineUnlocked") && (my_class() == $class[pastamancer]) || my_class() == $class[accordion thief]) {
+		if(get_property_boolean("barrelShrineUnlocked") && (my_class() == $class[pastamancer] || my_class() == $class[accordion thief])) {
 			visit_url("da.php?barrelshrine=1");
 			visit_url("choice.php?whichchoice=1100&option=4&pwd="+my_hash());
 		}
@@ -1992,7 +2008,7 @@ void endDay1() { //final actions of day 1; spell test buffing goes here
 		return;
 	}
 	if(get_property_int("acs_questStage") == 160) {
-		if ((have_effect($effect[Smithsness Presence]) == 0 && $item[handful of Smithereens].available_amount() > 0) || (my_adventures() < 1)) {
+		if ((have_effect($effect[Smithsness Presence]) == 0 && $item[handful of Smithereens].available_amount() > 0)) {
 			chew(1, $item[handful of Smithereens]);
 		}
 		cast($skill[Simmer]);
@@ -2269,7 +2285,7 @@ void powerlevel() {
 			buy($coinmaster[The Dinsey Company Store], 1, $item[Dinsey face paint]);
 			use(1, $item[Dinsey face paint]); // +40 ML @ 20 adv
 		}
-		if ((g9val() > 300 && $item[yellow pixel].available_amount() >= 10 && knoll_available()) ||
+		if ((g9val() > 300 && $item[yellow pixel].available_amount() >= 10 && (knoll_available() || getCar)) ||
 		     (($item[yellow pixel].available_amount() >= 10) && ($item[yellow pixel].available_amount() < 15))) {
 			create(1, $item[yellow pixel potion]);
 			use(1, $item[yellow pixel potion]); // +25 ML @ 20 adv
@@ -2465,9 +2481,7 @@ void powerlevel() {
 			// gr8ness is weird for accordion thieves
 			if ($item[gr8ps].available_amount() > 0 && $item[potion of temporary gr8tness].available_amount() == 0 && my_class() == $class[accordion thief] && my_level() >= 9) {
 				create(1, $item[potion of temporary gr8tness]); # guild must be open for this
-				while(get_property_int("acs_powerLevelTurnsLeft") - have_effect($effect[temporary gr8tness]) > 0) {
-					useIfHave(1, $item[potion of temporary gr8tness]);
-				}
+				useIfHave(1, $item[potion of temporary gr8tness]);
 			}
 		}
 		cli_execute("mood clear");
