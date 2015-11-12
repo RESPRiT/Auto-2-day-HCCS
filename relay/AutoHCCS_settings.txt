@@ -25,3 +25,7 @@
 25	acs_anySign	boolean	Run the script as a non-Gnoll sign	exp
 26	acs_turnsToPowerLevel	int	Total number of turns to powerlevel	exp
 27	acs_gr8pDropThreshold	int	Minimum percentage chance of getting the gr8ps to drop with +item, otherwise YR	dev
+28	acs_g9Threshold	int	Minimum G9 bonus percentage to attempt to get the potion (only affects getting G9 on day 2)	exp
+29	acs_useNorth	boolean	Use Song of the North over Song of the Sauce for combat (for CCS)	exp
+30	acs_advRestThreshold	int	If meat available becomes less than this, use adventures to rest	exp
+31	acs_getCar	boolean	Get the meat car parts even if your sign isn't knoll	exp

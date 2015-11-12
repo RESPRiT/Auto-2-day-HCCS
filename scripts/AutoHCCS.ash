@@ -40,6 +40,9 @@ if(get_property("acs_gr8pDropThreshold").to_int() > 100 || get_property("acs_gr8
 	set_property("acs_gr8pDropThreshold", 100);
 }
 float gr8pDropThreshold = ((get_property("acs_gr8pDropThreshold").to_int() / 40.0) - 1) * 100;
+boolean useNorth = get_property("acs_useNorth").to_boolean();
+int advRestThreshold = get_property("acs_advRestThreshold").to_int();
+boolean getCar = get_property("acs_getCar").to_boolean();
 
 // ---------------------------------------------------------------------------
 
@@ -101,7 +104,7 @@ boolean islandSkipped() {
 }
 
 boolean gr8psAvailable() {
-	if (get_property("acs_chateau") == 2) {
+	if (get_property("acs_chateau") == 2 && (my_primestat() == $stat[mysticality] || my_class() == $class[accordion thief])) {
 		return true;
 	} else {
 		return false;
@@ -335,6 +338,10 @@ boolean free_rest() {
 	}
 }
 
+void adv_rest() {
+	visit_url("place.php?whichplace=chateau&action=chateau_restlabel");
+}
+
 void cast(skill which) { //just casts it if you have it.
 	if (have_skill(which)) {
 		use_skill(which);
@@ -359,8 +366,14 @@ void chateauCast(skill which) { //casts the skill as normal (if you have it), un
 				use_skill(which);
 				return;
 			}
-			restore_mp(mp_cost(which));
-			print("Ran out of MP and free rests; had to restort to meat-MP instead", "red");
+			if(my_meat() <= advRestThreshold && my_adventures() > 0) {
+				adv_rest();
+				print("I'm done spending meat on MP; had to resort to using an adventure to rest", "red");
+			} else {
+				restore_mp(mp_cost(which));
+				print("Ran out of MP and free rests; had to resort to meat-MP instead", "red");
+			}
+
 			if (my_mp() >= mp_cost(which)) {
 				use_skill(which);
 			} else {
@@ -680,8 +693,12 @@ void powerlevelMood() {
 	if (have_skill($skill[Stevedave's Shanty of Superiority])) {
 		cli_execute("trigger lose_effect, Stevedave's Shanty of Superiority, cast 1 Stevedave's Shanty of Superiority");
 	}
-	if (have_skill($skill[The Magical Mojomuscular Melody])) {
+	if (have_skill($skill[The Magical Mojomuscular Melody]) && my_primestat() == $stat[mysticality]) {
 		cli_execute("trigger lose_effect, The Magical Mojomuscular Melody, cast 1 The Magical Mojomuscular Melody");
+	} else if (have_skill($skill[The Power Ballad of the Arrowsmith]) && my_primestat() == $stat[muscle]) {
+		cli_execute("trigger lose_effect, Power Ballad of the Arrowsmith, cast 1 Power Ballad of the Arrowsmith");
+	} else if (have_skill($skill[The Moxious Madrigal]) && my_primestat() == $stat[moxie]) {
+		cli_execute("trigger lose_effect, The Moxious Madrigal, cast 1 The Moxious Madrigal");
 	}
 
 	//ML
@@ -694,8 +711,10 @@ void powerlevelMood() {
 	
 	
 	//spell damage
-	if (have_skill($skill[Song of Sauce])) {
+	if (have_skill($skill[Song of Sauce]) && !useNorth) {
 		cli_execute("trigger lose_effect, Song of Sauce, cast 1 Song of Sauce");
+	} else if(have_skill($skill[Song of the North])) {
+		cli_execute("trigger lose_effect, Song of the North, cast 1 Song of the North");
 	}
 	
 	//weight
@@ -707,8 +726,12 @@ void powerlevelMood() {
 	}
 
 	//+myst stats
-	if (have_skill($skill[Wry Smile])) {
+	if (have_skill($skill[Wry Smile]) && my_primestat() == $stat[mysticality]) {
 		cli_execute("trigger lose_effect, Wry Smile, cast 1 Wry Smile");
+	} else if (have_skill($skill[Patient Smile]) && my_primestat() == $stat[muscle]) {
+		cli_execute("trigger lose_effect, Patient Smile, cast 1 Patient Smile");
+	} else if (have_skill($skill[Knowing Smile]) && my_primestat() == $stat[moxie]) {
+		cli_execute("trigger lose_effect, Knowing Smile, cast 1 Knowing Smile");
 	}
 	
 	cli_execute("mood execute");
@@ -731,7 +754,7 @@ void calderaMood() {
 		cli_execute("trigger lose_effect, Springy Fusilli, cast 1 Springy Fusilli");
 	} 
 	if (have_skill($skill[The Power Ballad of the Arrowsmith])) {
-		cli_execute("trigger lose_effect, Power Ballad of the Arrowsmith, cast 1 The Power Ballad of the Arrowsmith");
+		cli_execute("trigger lose_effect, Power Ballad of the Arrowsmith, cast 1 Power Ballad of the Arrowsmith");
 	} 
 	if (have_skill($skill[Suspicious Gaze])) {
 		cli_execute("trigger lose_effect, Suspicious Gaze, cast 1 Suspicious Gaze");
@@ -867,7 +890,11 @@ string combat(int round, string opp, string text) { //always uses this script's 
 			} else if (have_effect($effect[On the Trail]) == 40) { //used it this combat
 				return customCombat(round - 1);
 			} else {
-				return customCombat(round);
+				if(item_amount($item[Handsome Devil]) > 0) {
+					return "item Handsome Devil";
+				} else {
+					return customCombat(round);
+				}
 			}
 		} else {
 			return customCombat(round);
@@ -880,12 +907,16 @@ string combat(int round, string opp, string text) { //always uses this script's 
 				return "run away";
 			}
 		} else if ($item[limp broccoli].available_amount() >= 1) {
-			if (have_effect($effect[On the Trail]) == 0) {
+			if (have_effect($effect[On the Trail]) == 0 && have_skill($skill[Transcendent Olfaction])) {
 				return "skill Transcendent Olfaction";
 			} else if (have_effect($effect[On the Trail]) == 40) { //used it this combat
 				return customCombat(round - 1);
 			} else {
-				return customCombat(round);
+				if(item_amount($item[Handsome Devil]) > 0) {
+					return "item Handsome Devil";
+				} else {
+					return customCombat(round);
+				}
 			}
 		} else {
 			return customCombat(round);
@@ -1339,6 +1370,7 @@ void day1setup() {
 	if ($item[astral six-pack].available_amount() == 1) {
 		use(1, $item[astral six-pack]);
 	}
+	
 	if ($item[bitchin' meatcar].available_amount() == 0 && knoll_available()) {
 		create(1, $item[bitchin' meatcar]);
 	}
@@ -1350,7 +1382,19 @@ void day1setup() {
 		cli_execute("cheat mickey");
 		autosell(1, $item[1952 Mickey Mantle card]);
 		cli_execute("cheat giant growth");
-		cli_execute("cheat empress");
+		switch(my_primestat()) {
+			case $stat[mysticality]:
+				cli_execute("cheat empress");
+				break;
+			case $stat[moxie]:
+				cli_execute("cheat lovers");
+				break;
+			case $stat[muscle]:
+				cli_execute("cheat world");
+				break;
+			default:
+				break;
+		}
 	} else {
 		print("Skipping deck draws...");
 	}
@@ -1367,7 +1411,7 @@ void day1setup() {
 	if (have_skill($skill[Summon Smithsness])) {
 		use_skill(3, $skill[Summon Smithsness]);
 	}
-	if ($item[Hairpiece on Fire].available_amount() == 0) {
+	if ($item[Hairpiece on Fire].available_amount() == 0 && knoll_available()) {
 		create(1, $item[Hairpiece on Fire]);
 		equipIfHave($item[Hairpiece on Fire]);
 	}
@@ -1406,11 +1450,12 @@ void day1setup() {
 	getTurtleTotem();
 	if ($item[detuned radio].available_amount() == 0 && knoll_available()) {
 		buy(1, $item[detuned radio]);
+		change_mcd(10);
 	}
 	if(canadia_available()) {
 		change_mcd(11);
 	} else {
-		change_mcd(10);
+		// gnomes aren't optimal silly 
 	}
 	if ($item[transmission from planet Xi].available_amount() > 0) {
 		use(1, $item[transmission from planet Xi]);
@@ -1524,14 +1569,34 @@ void openGuild() {
 	if(get_property_int("acs_questStage") >= 45) {
 		return;
 	}
-	if (gr8psAvailable()) {
+	if (gr8psAvailable() && (knoll_available() || getCar)) {
 		setFamiliar();
 		basicItemDropBuffs();
 		chateauCast($skill[Musk of the Moose]);
 		chateauCast($skill[Carlweather's Cantata of Confrontation]);
-		maximize("item drop", false);
-		adventure(1, $location[The Haunted Pantry], "combat");
+		maximize("item drop -equip heat-resistant necktie -equip heat-resistant gloves -equip lava-proof pants", false);
+		if(my_primestat() == $stat[mysticality]) {
+			adventure(1, $location[The Haunted Pantry], "combat");
+		} else if (my_primestat() == $stat[moxie]){
+			adventure(1, $location[The Sleazy Back Alley], "combat");
+		} else {
+			adventure(1, $location[The Outskirts of Cobb's Knob], "combat");
+		}
 		cli_execute("guild");
+		if(getCar && !knoll_available()) {
+			print("You're not under the knoll sign and have opted to get the car parts anyways! Yay!", "blue");
+			setItemFamiliar();
+			maximize("item", false);
+			
+			while(!create(1, $item[bitchin' meatcar])) {
+				adv1($location[The Degrassi Knoll Garage], -1, "combat");
+				useIfHave(1, $item[Gnollish toolbox]);
+			}
+			
+			if(gnomads_available()) {
+				change_mcd(10); // you made gnomes optimal!
+			}
+		}
 		visit_url("guild.php?place=paco");
 		visit_url("guild.php?place=paco");
 		visit_url("choice.php?pwd&whichchoice=930&option=1");
@@ -1542,7 +1607,13 @@ void openGuild() {
 		if (doghouseAvailable()) {
 			while($item[Ghost Dog Chow].available_amount() == 0) {
 				getSRifCan();
-				adv1($location[The Haunted Pantry], -1, "combat");
+				if(my_primestat() == $stat[mysticality]) {
+					adv1($location[The Haunted Pantry], -1, "combat");
+				} else if(my_primestat() == $stat[moxie]){
+					adv1($location[The Sleazy Back Alley], -1, "combat");
+				} else {
+					adv1($location[The Outskirts of Cobb's Knob], -1, "combat");
+				}
 			}
 		}
 	}
@@ -1571,7 +1642,9 @@ void getCalderaDNA() {
 		return;
 	}
 	if (get_property_boolean("hotAirportAlways") && $item[DNA extraction syringe].available_amount() > 0) {
-		chateauCast($skill[Song of Sauce], 5); //hot-aligned monsters effectively take half damage from Saucegeyser so this compensates for it, allowing a 1-shot
+		if(!useNorth) {
+			chateauCast($skill[Song of Sauce], 5); //hot-aligned monsters effectively take half damage from Saucegeyser so this compensates for it, allowing a 1-shot
+		}
 		calderaMood();
 		int turns = 0;
 		// TODO
@@ -1645,7 +1718,7 @@ void maybeUnlockIsland() { //either unlocks island or decides to just do skeleto
 }
 
 void getG9Serum() { //like 0-7 turns prolly
-	if((get_property_int("acs_questStage") >= 80 && !g9Day2) || (get_property_int("acs_questStage") >= 205 && g9Day2 && g9val() < 150)) {
+	if((get_property_int("acs_questStage") >= 80 && !g9Day2) || (get_property_int("acs_questStage") >= 205 && g9Day2) || (g9Day2 && g9val() < get_property_int("acs_g9Threshold"))) {
 		return;
 	}
 	if (!get_property_boolean("spookyAirportAlways") || (!have_skill($skill[Transcendent Olfaction]) && !alwaysG9)) {
@@ -1657,6 +1730,10 @@ void getG9Serum() { //like 0-7 turns prolly
 		return;
 	}
 	if((get_property_int("acs_questStage") == 70) || (get_property_int("acs_questStage") == 200)) {
+		if (item_amount($item[Staff of the Headmaster's Victuals]) > 0) {
+			pulverize($item[Staff of the Headmaster's Victuals]);
+			create(1, $item[Handsome Devil]);
+		}
 		if (my_mp() < (mp_cost($skill[Transcendent Olfaction]) + mp_cost($skill[Curse of Weaksauce]) + mp_cost($skill[Saucegeyser]))) {
 			if (!free_rest()) {
 				restore_mp(mp_cost($skill[Transcendent Olfaction])+ mp_cost($skill[Curse of Weaksauce]) + mp_cost($skill[Saucegeyser]));
@@ -1674,7 +1751,7 @@ void getG9Serum() { //like 0-7 turns prolly
 		}
 		setItemFamiliar();
 		basicItemDropBuffs();
-		maximize("item drop +equip personal ventilation unit", false);
+		maximize("item drop +equip personal ventilation unit -equip heat-resistant necktie -equip heat-resistant gloves -equip lava-proof pants", false);
 		if(!g9Day2) {
 			saveProgress(71);
 		} else {
@@ -1809,7 +1886,7 @@ void itemTest() {
 		useIfHave(1, $item[cyclops eyedrops]);
 		useIfHave(1, $item[cuppa Serendipi tea]);
 		useForTest("Item");
-		if(get_property_boolean("barrelShrineUnlocked") && (my_class() == $class[pastamancer]) || my_class() == $class[accordion thief]) {
+		if(get_property_boolean("barrelShrineUnlocked") && (my_class() == $class[pastamancer] || my_class() == $class[accordion thief])) {
 			visit_url("da.php?barrelshrine=1");
 			visit_url("choice.php?whichchoice=1100&option=4&pwd="+my_hash());
 		}
@@ -1904,11 +1981,11 @@ void makePotionsDay1() {
 	}
 
 	// milk has been created earlier if a dairy goat was the painting
-	if ($item[gr8ps].available_amount() > 0 && $item[potion of temporary gr8tness].available_amount() == 0) {
+	if ($item[gr8ps].available_amount() > 0 && $item[potion of temporary gr8tness].available_amount() == 0 && my_primestat() == $stat[mysticality]) {
 		create(1, $item[potion of temporary gr8tness]); # guild must be open for this
 	}
 
-	if ($item[cherry].available_amount() > 0) {
+	if ($item[cherry].available_amount() > 0 && (my_class() != $class[pastamancer] || !have_skill($skill[bind undead elbow macaroni]) || !have_skill($skill[bind penne dreadful]))) {
 		create(1, $item[oil of expertise]);
 	}
 	if ($item[grapefruit].available_amount() > 0) {
@@ -1931,7 +2008,7 @@ void endDay1() { //final actions of day 1; spell test buffing goes here
 		return;
 	}
 	if(get_property_int("acs_questStage") == 160) {
-		if ((have_effect($effect[Smithsness Presence]) == 0 && $item[handful of Smithereens].available_amount() > 0) || (my_adventures() < 1)) {
+		if ((have_effect($effect[Smithsness Presence]) == 0 && $item[handful of Smithereens].available_amount() > 0)) {
 			chew(1, $item[handful of Smithereens]);
 		}
 		cast($skill[Simmer]);
@@ -1955,7 +2032,7 @@ void endDay1() { //final actions of day 1; spell test buffing goes here
 				cast($skill[Summon Taffy]);
 			}
 		}
-		maximize("adv", false);
+		maximize("adv -equip heat-resistant necktie -equip heat-resistant gloves -equip lava-proof pants", false);
 		if (smashHippyStone) {
 			chateaumantegna_buyStuff($item[antler chandelier]);
 		} else {
@@ -2008,8 +2085,10 @@ void day2setup() {
 	if (!have_skill($skill[Double-Fisted Skull Smashing]) && my_class() == $class[turtle tamer]) {
 		pulverize(classSmith());
 	} 
-	create(1, $item[Vicar's Tutu]);
-	equipIfHave($item[Vicar's Tutu]);
+	if(knoll_available()) {
+		create(1, $item[Vicar's Tutu]);
+		equipIfHave($item[Vicar's Tutu]);
+	}
 	create(1, $item[Staff of the Headmaster's Victuals]);
 	if (!have_skill($skill[Spirit of Rigatoni])) {
 		pulverize($item[Staff of the Headmaster's Victuals]);
@@ -2126,14 +2205,18 @@ void hotTest() {
 			create(1, $item[lotion of sleaziness]);
 			use(1, $item[lotion of sleaziness]);
 		}
-		if (my_basestat($stat[moxie]) < 35 && ($item[lava-proof pants].available_amount() > 0 || $item[heat-resistant gloves].available_amount() > 0)) {
+		if (my_primestat() != $stat[moxie] && my_basestat($stat[moxie]) < 35 && ($item[lava-proof pants].available_amount() > 0 || $item[heat-resistant gloves].available_amount() > 0)) {
 			chateaumantegna_buyStuff($item[bowl of potpourri]);
 			while(my_basestat($stat[moxie]) < 35 && free_rest()) {
 				while (have_skill($skill[Summon Taffy]) && my_mp() > (mp_cost($skill[Summon Taffy]) + 100)) {
 					cast($skill[Summon Taffy]);
 				}
 			}
-			chateaumantegna_buyStuff($item[foreign language tapes]);
+			if(my_primestat() == $stat[muscle]) {
+				chateaumantegna_buyStuff($item[Electric Muscle Stimulator]);
+			} else if (my_primestat() == $stat[mysticality]) {
+				chateaumantegna_buyStuff($item[foreign language tapes]);
+			}
 		}
 		equipIfHave($item[lava-proof pants]);
 		equipIfHave($slot[acc1], $item[perfume-soaked bandana]);
@@ -2202,7 +2285,7 @@ void powerlevel() {
 			buy($coinmaster[The Dinsey Company Store], 1, $item[Dinsey face paint]);
 			use(1, $item[Dinsey face paint]); // +40 ML @ 20 adv
 		}
-		if ((g9val() > 300 && $item[yellow pixel].available_amount() >= 10) ||
+		if ((g9val() > 300 && $item[yellow pixel].available_amount() >= 10 && (knoll_available() || getCar)) ||
 		     (($item[yellow pixel].available_amount() >= 10) && ($item[yellow pixel].available_amount() < 15))) {
 			create(1, $item[yellow pixel potion]);
 			use(1, $item[yellow pixel potion]); // +25 ML @ 20 adv
@@ -2250,16 +2333,38 @@ void powerlevel() {
 		chateauCast($skill[Stevedave's Shanty of Superiority], get_property_int("acs_powerLevelTurnsLeft")); // +10% all @ 5 adv
 
 		// --------------------------------------------------
-		// +myst%
-		useIfHave(1, $item[ointment of the occult]); // +100% myst @ 15 adv
-		buy(10, $item[glittery mascara]); // +15% myst @ 3adv
-		use(10, $item[glittery mascara]);
+		// +mainstat%
+		if(my_primestat() == $stat[mysticality]) {
+			useIfHave(1, $item[ointment of the occult]); // +100% myst @ 15 adv
+			buy(10, $item[glittery mascara]); // +15% myst @ 3adv
+			use(10, $item[glittery mascara]);
+		} else if (my_primestat() == $stat[muscle]) {
+			useIfHave(1, $item[philter of phorce]);
+			buy(10, $item[Ben-Gal&trade; Balm]);
+			use(10, $item[Ben-Gal&trade; Balm]);
+		} else if (my_primestat() == $stat[moxie]) {
+			useIfHave(1, $item[serum of sarcasm]);
+			buy(10, $item[hair spray]);
+			use(10, $item[hair spray]);
+		}
+
 
 		// --------------------------------------------------
-		// +myst
-		chateauCast($skill[The Magical Mojomuscular Melody], get_property_int("acs_powerLevelTurnsLeft"));
-		chateauCast($skill[Sauce Contemplation], get_property_int("acs_powerLevelTurnsLeft"));
-		chateauCast($skill[Manicotti Meditation], get_property_int("acs_powerLevelTurnsLeft"));
+		// +mainstat
+		if(my_primestat() == $stat[mysticality]) {
+			chateauCast($skill[The Magical Mojomuscular Melody], get_property_int("acs_powerLevelTurnsLeft"));
+			chateauCast($skill[Sauce Contemplation], get_property_int("acs_powerLevelTurnsLeft"));
+			chateauCast($skill[Manicotti Meditation], get_property_int("acs_powerLevelTurnsLeft"));
+		} else if (my_primestat() == $stat[muscle]) {
+			chateauCast($skill[The Power Ballad of the Arrowsmith], get_property_int("acs_powerLevelTurnsLeft"));
+			chateauCast($skill[Seal Clubbing Frenzy], get_property_int("acs_powerLevelTurnsLeft"));
+			chateauCast($skill[Patience of the Tortoise], get_property_int("acs_powerLevelTurnsLeft"));
+		} else if (my_primestat() == $stat[moxie]) {
+			chateauCast($skill[The Moxious Madrigal], get_property_int("acs_powerLevelTurnsLeft"));
+			chateauCast($skill[Disco Aerobics], get_property_int("acs_powerLevelTurnsLeft"));
+			chateauCast($skill[Moxie of the Mariachi], get_property_int("acs_powerLevelTurnsLeft"));
+		}
+
 
 		// --------------------------------------------------
 		// +exp
@@ -2277,8 +2382,13 @@ void powerlevel() {
 		chateauCast($skill[Reptilian Fortitude], get_property_int("acs_powerLevelTurnsLeft"));
 
 		// --------------------------------------------------
-		// +spell dmg%
-		chateauCast($skill[Song of Sauce], get_property_int("acs_powerLevelTurnsLeft"));
+		// +spell/wep dmg%
+		if(!useNorth) {
+			chateauCast($skill[Song of Sauce], get_property_int("acs_powerLevelTurnsLeft"));
+		} else {
+			chateauCast($skill[Song of the North], get_property_int("acs_powerLevelTurnsLeft"));
+		}
+		
 
 		// --------------------------------------------------
 		// familiar
@@ -2314,7 +2424,7 @@ void powerlevel() {
 		useIfHave(7, $item[pulled violet taffy]);
 		useIfHave(7, $item[pulled blue taffy]); // up to +5lb & + 10 fam exp @ 50 adv
 
-		maximize("myst", false);
+		maximize("myst -equip heat-resistant necktie -equip heat-resistant gloves -equip lava-proof pants", false);
 		equipIfHave($item[barrel lid]); // +50 ML
 		saveProgress(250);
 		if (doCheckpoints) {
@@ -2368,6 +2478,11 @@ void powerlevel() {
 			if (contains_text(page, "Human-Machine Hybrid") && $item[Gene Tonic: Construct].available_amount() == 0) {
 				visit_url("campground.php?action=dnapotion");
 			}
+			// gr8ness is weird for accordion thieves
+			if ($item[gr8ps].available_amount() > 0 && $item[potion of temporary gr8tness].available_amount() == 0 && my_class() == $class[accordion thief] && my_level() >= 9) {
+				create(1, $item[potion of temporary gr8tness]); # guild must be open for this
+				useIfHave(1, $item[potion of temporary gr8tness]);
+			}
 		}
 		cli_execute("mood clear");
 		lockFamiliar = false;
@@ -2382,6 +2497,8 @@ void powerlevel() {
 	cli_execute("shrug antiphon");
 	cli_execute("shrug ur-kel");
 	cli_execute("shrug mojomuscula");
+	cli_execute("shrug The Moxious Madrigal");
+	cli_execute("shrug Power Ballad of the Arrowsmith");
 	saveProgress(260);
 }
 
@@ -2390,7 +2507,9 @@ void hpTest() {
 		return;
 	}
 	if(get_property_int("acs_questStage") == 260) {
-		useIfHave(1, $item[oil of expertise]);
+		if((my_primestat() != $stat[muscle] && my_class() != $class[pastamancer]) || !have_skill($skill[bind undead elbow macaroni])) {
+			useIfHave(1, $item[oil of expertise]);
+		}
 		useIfHave(1, $item[jar of &quot;Creole Lady&quot; marrrmalade]);
 		useIfHave(1, $item[scroll of Puddingskin]);
 		useIfHave(1, $item[philter of phorce]);
@@ -2478,7 +2597,9 @@ void muscleTest() {
 			useIfHave(1, $item[philter of phorce]);
 		}
 		if (have_effect($effect[Expert Oiliness]) == 0) {
-			useIfHave(1, $item[oil of expertise]);
+			if((my_primestat() != $stat[muscle] && my_class() != $class[pastamancer]) || !have_skill($skill[bind undead elbow macaroni])) {
+				useIfHave(1, $item[oil of expertise]);
+			}
 		}
 		
 		allStatBuffs();
@@ -2507,6 +2628,9 @@ void mystTest() {
 		chateauCast($skill[The Magical Mojomuscular Melody]);
 		chateauCast($skill[Sauce Contemplation]);
 		chateauCast($skill[Manicotti Meditation]);
+		if(have_effect($effect[Expert Oiliness]) == 0 && my_primestat() != $stat[mysticality]) {
+			useIfHave(1, $item[oil of expertise]);
+		}
 		useIfHave(1, $item[ointment of the occult]);
 		useForTest("Myst");
 		useTaffies($item[pulled violet taffy]);
@@ -2586,7 +2710,9 @@ void moxieTest() {
 			use(1, $item[miniature power pill]);
 		}
 		if (have_effect($effect[Expert Oiliness]) == 0) {
-			useIfHave(1, $item[oil of expertise]);
+			if((my_primestat() != $stat[muscle] && my_class() != $class[pastamancer]) || !have_skill($skill[bind penne dreadful])) {
+				useIfHave(1, $item[oil of expertise]);
+			}
 		}
 		if ($item[Volcoino].available_amount() >= 1) {
 			buy($coinmaster[Disco GiftCo], 1, $item[liquid rhinestones]);
@@ -2738,6 +2864,8 @@ void doRun() { //main function
 		maybeUnlockIsland(); // Progress #70
 		if(!g9Day2) {
 			getG9Serum(); // Progress #80, 71 adv, 2-7 advs used, cheerleader (4)
+		} else if(get_property_int("acs_questStage") < 80){
+			saveProgress(80);
 		}
 		weaponTest(); // Progress #90-110, 75 adv, 56 adv used
 		eatMoreFoodD1(); // Progress #120, 131 adv
@@ -2751,7 +2879,11 @@ void doRun() { //main function
 		day2setup(); // Progress #180
 		spellTest(); // Progress #190, 183 adv, 45 adv used
 		getHotResistGear(); // YR, Progress #200
-		getG9Serum(); // Progress #205
+		if(g9Day2) {
+			getG9Serum(); // Progress #205
+		} else if(get_property_int("acs_questStage") < 205) {
+			saveProgress(205);
+		}
 		makePotionsDay2(); // Progress #210
 		hotTest(); // Progress #220-240
 		powerlevel(); // Grill, Progress #250-260
